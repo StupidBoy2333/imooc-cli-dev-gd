@@ -2,6 +2,9 @@
   "name": "imooc-cli-dev-gd",
   "version": "1.0.0",
   "description": "imooc-cli dev",
+  "bin": {
+    "imooc-cli-dev-gd": "core/cli/bin/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
