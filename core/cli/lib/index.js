@@ -91,13 +91,18 @@ async function prepare() {
 }
 
 async function checkGlobalUpdate() {
-  const currentVersion = pkg.version;
-  const npmName = pkg.name;
-  const { getNpmSemverVersion } = require('@imooc-cli-dev-gd/get-npm-info');
-  const lastVersion = await getNpmSemverVersion(currentVersion, npmName);
-  if (lastVersion && semver.gt(lastVersion, currentVersion)) {
-    log.warn(colors.yellow(`请手动更新 ${npmName}，当前版本：${currentVersion}，最新版本：${lastVersion}
-                更新命令： npm install -g ${npmName}`));
+  try {
+    const currentVersion = pkg.version;
+    const npmName = pkg.name;
+    const { getNpmSemverVersion } = require('@imooc-cli-dev-gd/get-npm-info');
+    const lastVersion = await getNpmSemverVersion(currentVersion, npmName);
+    if (lastVersion && semver.gt(lastVersion, currentVersion)) {
+      log.warn(colors.yellow(`请手动更新 ${npmName}，当前版本：${currentVersion}，最新版本：${lastVersion}
+                  更新命令： npm install -g ${npmName}`));
+    }
+  } catch (err) {
+    // 静默处理更新检查错误，不影响 CLI 正常使用
+    log.verbose('update-check', '检查更新失败', err.message);
   }
 }
 

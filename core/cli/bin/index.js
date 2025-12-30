@@ -7,4 +7,3 @@ if (importLocal(__filename)) {
 } else {
   require('../lib')(process.argv.slice(2));
 }
-////////、、dsfds 
