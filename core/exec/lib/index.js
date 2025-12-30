@@ -1,6 +1,8 @@
 'use strict';
 
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const Package = require('@imooc-cli-dev-gd/package');
 const log = require('@imooc-cli-dev-gd/log');
 const { exec: spawn } = require('@imooc-cli-dev-gd/utils');
@@ -51,6 +53,7 @@ async function exec() {
     });
   }
   const rootFile = pkg.getRootFilePath();
+  log.verbose('rootFile', rootFile);
   if (rootFile) {
     try {
       // 在当前进程中调用
@@ -67,16 +70,37 @@ async function exec() {
         }
       });
       args[args.length - 1] = o;
-      const code = `require('${rootFile}').call(null, ${JSON.stringify(args)})`;
-      const child = spawn('node', ['-e', code], {
+      // 使用临时文件来执行代码，避免 Windows 上命令行长度限制和转义问题
+      const code = `require(${JSON.stringify(rootFile)}).call(null, ${JSON.stringify(args)})`;
+      log.verbose('exec code', code);
+      
+      // 创建临时文件
+      const tmpFile = path.join(os.tmpdir(), `imooc-cli-exec-${Date.now()}.js`);
+      fs.writeFileSync(tmpFile, code);
+      
+      const child = spawn('node', [tmpFile], {
         cwd: process.cwd(),
         stdio: 'inherit',
       });
+      
+      // 清理临时文件
+      const cleanup = () => {
+        try {
+          if (fs.existsSync(tmpFile)) {
+            fs.unlinkSync(tmpFile);
+          }
+        } catch (e) {
+          // 忽略清理错误
+        }
+      };
+      
       child.on('error', e => {
+        cleanup();
         log.error(e.message);
         process.exit(1);
       });
       child.on('exit', e => {
+        cleanup();
         log.verbose('命令执行成功:' + e);
         process.exit(e);
       });

@@ -7,9 +7,12 @@ const Command = require('@imooc-cli-dev-gd/command');
 const log = require('@imooc-cli-dev-gd/log');
 const Git = require('@imooc-cli-dev-gd/git');
 
+log.verbose('publish lib', __filename);
+
 class PublishCommand extends Command {
   init() {
     // 处理参数
+    log.verbose('init PublishCommand');
     log.verbose('publish', this._argv, this._cmd);
     this.options = {
       refreshServer: this._cmd.refreshServer,
@@ -60,6 +63,7 @@ class PublishCommand extends Command {
 }
 
 function init(argv) {
+  log.verbose('publish init', argv);
   return new PublishCommand(argv);
 }
 

@@ -35,9 +35,9 @@ class InitCommand extends Command {
     try {
       // 1. 准备阶段
       const projectInfo = await this.prepare();
+      log.verbose('projectInfo', projectInfo);
       if (projectInfo) {
         // 2. 下载模板
-        log.verbose('projectInfo', projectInfo);
         this.projectInfo = projectInfo;
         await this.downloadTemplate();
         // 3. 安装模板
@@ -153,6 +153,8 @@ class InitCommand extends Command {
     await this.ejsRender({ ignore });
     const { installCommand, startCommand } = this.templateInfo;
     // 依赖安装
+    log.verbose('installCommand', installCommand);
+    log.verbose('startCommand', startCommand);
     await this.execCommand(installCommand, '依赖安装失败！');
     // 启动命令执行
     await this.execCommand(startCommand, '启动执行命令失败！');
@@ -184,6 +186,7 @@ class InitCommand extends Command {
   async downloadTemplate() {
     const { projectTemplate } = this.projectInfo;
     const templateInfo = this.template.find(item => item.npmName === projectTemplate);
+    log.verbose('templateInfo', templateInfo);
     const targetPath = path.resolve(userHome, '.imooc-cli-dev', 'template');
     const storeDir = path.resolve(userHome, '.imooc-cli-dev', 'template', 'node_modules');
     const { npmName, version } = templateInfo;
@@ -228,6 +231,7 @@ class InitCommand extends Command {
   async prepare() {
     // 0. 判断项目模板是否存在
     const template = await getProjectTemplate();
+    log.verbose('template', template);
     if (!template || template.length === 0) {
       throw new Error('项目模板不存在');
     }

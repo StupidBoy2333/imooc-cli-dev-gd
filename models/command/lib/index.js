@@ -37,6 +37,7 @@ class Command {
   }
 
   checkNodeVersion() {
+    log.verbose('checkNodeVersion');
     const currentVersion = process.version;
     const lowestVersion = LOWEST_NODE_VERSION;
     if (!semver.gte(currentVersion, lowestVersion)) {
