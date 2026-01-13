@@ -47,6 +47,7 @@ function registerCommand() {
     .option('--refreshServer', '强制更新远程Git仓库')
     .option('--refreshToken', '强制更新远程仓库token')
     .option('--refreshOwner', '强制更新远程仓库类型')
+    .option('--prod', '是否发布到生产环境')
     .option('--buildCmd <buildCmd>', '构建命令')
     .action(exec);
 
@@ -74,8 +75,12 @@ function registerCommand() {
     }
   });
 
-  program.parse(process.argv);
 
+  program.parse(process.argv);
+  console.log(colors.yellow('process.argv', process.argv));
+  // console.log(colors.red('program', program));
+  console.log(colors.red('program.args', program.args));
+  console.log(colors.red('program.debug', program.debug));
   if (program.args && program.args.length < 1) {
     program.outputHelp();
     console.log();

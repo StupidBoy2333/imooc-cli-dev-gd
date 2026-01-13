@@ -4,7 +4,8 @@ const io = require('socket.io-client');
 const log = require('@imooc-cli-dev-gd/log');
 const get = require('lodash/get');
 
-const WS_SERVER = 'http://book.youbaobao.xyz:7001';
+// const WS_SERVER = 'http://book.youbaobao.xyz:7001';
+const WS_SERVER = 'http://localhost:7001';
 const TIME_OUT = 5 * 60 * 1000;
 const CONNECT_TIME_OUT = 5 * 1000;
 
@@ -24,6 +25,7 @@ class CloudBuild {
     this.git = git;
     this.buildCmd = options.buildCmd;
     this.timeout = TIME_OUT;
+    this.prod = options.prod;
   }
 
   doTimeout(fn, timeout) {
@@ -41,6 +43,7 @@ class CloudBuild {
           branch: this.git.branch,
           version: this.git.version,
           buildCmd: this.buildCmd,
+          prod: this.prod,
         },
       });
       socket.on('connect', () => {

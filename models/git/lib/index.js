@@ -21,6 +21,7 @@ const GIT_TOKEN_FILE = '.git_token';
 const GIT_OWN_FILE = '.git_own';
 const GIT_LOGIN_FILE = '.git_login';
 const GIT_IGNORE_FILE = '.gitignore';
+const GIT_PUBLISH_FILE = '.git_publish';
 const GITHUB = 'github';
 const GITEE = 'gitee';
 const REPO_OWNER_USER = 'user';
@@ -55,6 +56,7 @@ class Git {
     refreshToken = false,
     refreshOwner = false,
     buildCmd = '',
+    prod = false,
   }) {
     this.name = name; // 项目名称
     this.version = version; // 项目版本
@@ -72,6 +74,7 @@ class Git {
     this.refreshOwner = refreshOwner; // 是否强化刷新远程仓库类型
     this.branch = null; // 本地开发分支
     this.buildCmd = buildCmd; // 构建命令
+    this.prod = prod; // 是否发布到生产环境
   }
 
   async prepare() {
@@ -104,7 +107,9 @@ class Git {
     await this.checkoutBranch(this.branch);
     // 5.合并远程master分支和开发分支代码
     await this.pullRemoteMasterAndBranch();
-    // 6.将开发分支推送到远程仓库
+    // 6.检查并提交本地未提交的修改
+    await this.checkNotCommitted();
+    // 7.将开发分支推送到远程仓库
     await this.pushRemoteRepo(this.branch);
   }
 
@@ -112,6 +117,7 @@ class Git {
     await this.preparePublish();
     const cloudBuild = new CloudBuild(this, {
       buildCmd: this.buildCmd,
+      prod: this.prod,
     });
     await cloudBuild.init();
     await cloudBuild.build();
@@ -126,6 +132,16 @@ class Git {
     } else {
       this.buildCmd = 'npm run build';
     }
+    // 检查pkg中是否包含build命令
+    const pkg = fse.readJsonSync(`${this.dir}/package.json`);
+    const cmdArray = pkg.scripts.build.split(' ');
+    const lastCmd = cmdArray[cmdArray.length - 1];
+
+    if (!pkg && !pkg.scripts || !Object.keys(pkg.scripts).includes(lastCmd)) {
+      throw new Error('package.json中未包含build命令！');
+    }
+    //下面可以让用户选择用oss还是其他静态资源服务器，这里先不做处理，直接写死oss
+
   }
 
   async pullRemoteMasterAndBranch() {
@@ -170,6 +186,7 @@ class Git {
     // 版本号递增规范：major/minor/patch
     log.info('获取代码分支');
     const remoteBranchList = await this.getRemoteBranchList(VERSION_RELEASE);
+    log.verbose('remoteBranchList33333333333333', remoteBranchList);
     let releaseVersion = null;
     if (remoteBranchList && remoteBranchList.length > 0) {
       releaseVersion = remoteBranchList[0];
@@ -219,6 +236,7 @@ class Git {
 
   async getRemoteBranchList(type) {
     const remoteList = await this.git.listRemote(['--refs']);
+    log.verbose('remoteList22222222222222', remoteList);
     let reg;
     if (type === VERSION_RELEASE) {
       reg = /.+?refs\/tags\/release\/(\d+\.\d+\.\d+)/g;
@@ -248,6 +266,7 @@ class Git {
         '--allow-unrelated-histories': null,
       });
     } else {
+      log.info('远程master分支不存在，推送代码至master分支');
       await this.pushRemoteRepo('master');
     }
   }
@@ -267,11 +286,15 @@ class Git {
   }
 
   async checkRemoteMaster() {
-    return (await this.git.listRemote(['--refs'])).indexOf('refs/heads/master') >= 0;
+    log.info('检查远程master分支');
+    const list = await this.git.listRemote(['--refs']);
+    log.verbose('list', list);
+    return list.indexOf('refs/heads/master') >= 0;
   }
 
   async checkNotCommitted() {
     const status = await this.git.status();
+    log.verbose('status', status);
     if (status.not_added.length > 0 ||
       status.created.length > 0 ||
       status.deleted.length > 0 ||

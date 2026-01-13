@@ -7,18 +7,19 @@ const Command = require('@imooc-cli-dev-gd/command');
 const log = require('@imooc-cli-dev-gd/log');
 const Git = require('@imooc-cli-dev-gd/git');
 
-log.verbose('publish lib', __filename);
+// log.verbose('publish lib', __filename);
 
 class PublishCommand extends Command {
   init() {
     // 处理参数
-    log.verbose('init PublishCommand');
+    // log.verbose('init PublishCommand');
     log.verbose('publish', this._argv, this._cmd);
     this.options = {
       refreshServer: this._cmd.refreshServer,
       refreshToken: this._cmd.refreshToken,
       refreshOwner: this._cmd.refreshOwner,
       buildCmd: this._cmd.buildCmd,
+      prod: this._cmd.prod,
     };
   }
 
@@ -28,6 +29,7 @@ class PublishCommand extends Command {
       // 1.初始化检查
       this.prepare();
       // 2.Git Flow自动化
+      log.verbose('Git Flow自动化', this.options);
       const git = new Git(this.projectInfo, this.options);
       await git.prepare(); // 自动化提交准备和代码仓库初始化
       await git.commit(); // 代码自动化提交
